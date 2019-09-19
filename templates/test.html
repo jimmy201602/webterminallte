@@ -1,0 +1,71 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+        <title>test</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+</head>
+<body>
+    <iframe id="trigger_protocol_ifrm" style="display:none"></iframe>
+    <input id="protocolTxt" type="text" value="" />
+    <input id="checkBtn" type="button" value="检测是否支持该协议" />
+    <script>
+    document.getElementById('checkBtn').onclick = function(){
+        var url = document.getElementById('protocolTxt').value;
+        launchApplication(url, function(){
+            alert('success');
+        }, function(){
+            alert('fail');
+        });
+    };
+
+    var isDone = true;
+    var timeout;
+    var assistEl = document.getElementById('checkBtn');
+    var triggerEl = document.getElementById('trigger_protocol_ifrm');
+
+    function done(){
+        isDone = true;
+        assistEl.onblur = null;
+        triggerEl.onerror = null;
+        clearTimeout(timeout);
+    }
+
+    function launchApplication(url, success, fail){
+        if(!isDone)return;
+        isDone = false;
+
+        assistEl.focus();
+        assistEl.onblur = function(){
+            if(document.activeElement && document.activeElement !== assistEl){
+                assistEl.focus();
+            } else {
+                done();
+                success();
+            }
+        };
+
+        triggerEl.onerror = function(){
+            done();
+            fail();
+        };
+
+
+        try{
+            triggerEl.src = url;
+        }catch(e){
+            done();
+            fail();
+            return;
+        }
+
+
+        timeout = setTimeout(function(){
+            done();
+            fail();
+        }, 1800);
+    }
+</script>
+</body>
+
+</html>

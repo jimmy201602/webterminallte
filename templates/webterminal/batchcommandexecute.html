@@ -1,0 +1,322 @@
+{% extends 'base.html'%}
+{%load i18n%}
+{% block title %}{%trans 'batch command execute' %}{% endblock %}
+{% load staticfiles %}
+    {% block css %}
+    <link rel="stylesheet" href="{% static 'plugins/xterm/xterm.css' %}"/>
+    <link rel="stylesheet" href="{% static 'plugins/jstree/themes/proton/style.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'plugins/font-awesome/css/font-awesome.min.css' %}"/>
+    {% endblock %}
+    <style>
+        body {
+            font-family: helvetica, sans-serif, arial;
+            font-size: 1em;
+            color: #111;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #terminal-container {
+            width: 960px;
+            height: 600px;
+            margin: 0 auto;
+            padding: 2px;
+        }
+
+        #terminal-container .terminal {
+            background-color: #111;
+            color: #fafafa;
+            padding: 2px;
+        }
+
+        #terminal-container .terminal:focus .terminal-cursor {
+            background-color: #fafafa;
+        }
+    </style>
+{% block content %}
+<div class="row">
+  <div class="col-md-3">
+    <div class="portlet box box-success" style="overflow:scroll;height: 800px;">
+      <div class="portlet-title">
+        <div class="caption">
+          <a class="text-danger">{%trans 'Server List' %}</a>
+        </div>
+        <div class="tools">
+          <a href="javascript:;" class="collapse" data-original-title="" title=""> </a>
+          <a href="#portlet-config" data-toggle="modal" class="config" data-original-title="" title=""> </a>
+          <a href="javascript:;" class="reload" data-original-title="" title=""> </a>
+          <a href="javascript:;" class="remove" data-original-title="" title=""> </a>
+        </div>
+      </div>
+      <div class="portlet-body">
+        <form id="search">
+            <div class="input-group">
+                <input type="search" id="q" placeholder="{% trans 'search' %}" class="form-control">
+                <span class="input-group-addon"><button type="submit"><i class="fa fa-search"></i></button></span>
+            </div>
+        </form>
+        <div id="server_list" class="tree-demo" role="tree"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-9">
+
+      <div class="row">
+          <div class="col-md-12">
+              <p></p>
+              <div class="input-group input-group-sm" id="complete">
+                  <input class="form-control" type="text" id="autocomplete">
+                  <span class="input-group-btn">
+                      <button type="button" class="btn btn-info btn-flat" onclick="executecommand();">{% trans 'execute' %}</button>
+                    </span>
+              </div>
+              <p></p>
+          </div>
+      </div>
+
+    <div class="row" id="terminal-container">
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'plugins/xterm/xterm.js' %}"></script>
+<script src="{% static 'plugins/xterm/addons/fit/fit.js' %}"></script>
+<script src="{% static 'plugins/xterm/addons/attach/attach.js' %}"></script>
+<script src="{% static 'plugins/xterm/addons/terminado/terminado.js' %}"></script>
+<script src="{% static 'plugins/xterm/addons/fullscreen/fullscreen.js' %}"></script>
+<script src="{% static 'plugins/jstree/jstree.js' %}"></script>
+<script src="{% static 'plugins/typeahead.js/bootstrap-typeahead.jquery.min.js' %}"></script>
+
+<script type="application/javascript">
+    var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+    var ws_path = ws_scheme + '://' + window.location.host + '/batchexecute/';
+    var terminals = new Object;
+    Terminal.applyAddon(fullscreen);
+    Terminal.applyAddon(fit);
+    Terminal.applyAddon(attach);
+    var ws = new WebSocket(ws_path);
+    //handle receive data
+    ws.onmessage = function (event) {
+        json_msg = JSON.parse(event.data);
+        //console.log(json_msg);
+        if (terminals[json_msg[2]] != undefined){
+            switch (json_msg[0]) {
+                case "stdout":
+                    //['stdout', data, element.id]
+                    terminals[json_msg[2]].write(json_msg[1]);
+                    break;
+                case "disconnect":
+                    terminals[json_msg[2]].write("{% trans '\r\n\r\n[Finished...]\r\n' %}");
+                    break;
+                case "channel_name":
+                    //console.log(json_msg[1]);
+                    var channel_name_attribute = document.createAttribute('channel_name')
+                    channel_name_attribute.value = json_msg[1];
+                    document.getElementById(json_msg[2]).setAttributeNode(channel_name_attribute)
+                    break;
+            }
+        }
+    };
+    //make_terminal(document.getElementById(tabId), {rows: 40, cols: 90}, ip, id);
+    function make_terminal(element, size, ip, id) {
+        var term = new Terminal({
+            cols: size.cols,
+            rows: size.rows,
+            screenKeys: true,
+            useStyle: true,
+            cursorBlink: true,  // Blink the terminal's cursor
+        });
+        term.open(element, false);
+        terminals[element.id] = term;
+        //register the terminal
+        ws.send(JSON.stringify(["register", ip, term.cols, term.rows, id, element.id,]));
+        term.fit();
+        //send user input to server
+        term.on('data', function (data) {
+            ws.send(JSON.stringify(['stdin', data, element.id]));
+        });
+        //make terminal to full
+        term.toggleFullScreen(true);
+    };
+
+    $("#server_list").jstree({
+        core: {
+            themes: {
+                name: 'proton',
+                responsive: true
+                },
+            responsive: true,
+            check_callback: 0,
+            data: [
+                {% for server_group in server_groups %}
+                    {
+                        text: "{{ server_group.name }}",
+                        children: [
+                            {% for server in server_group.servers.all %}
+                                {% if server.credential.protocol == 'ssh-password' or server.credential.protocol == 'ssh-key' %}
+                                    {
+                                    text: "{{ server.name }}  {{ server.ip }}  {{ server.hostname }}",
+                                    ip: "{{ server.ip }}",
+                                    icon: "fa fa-linux",
+                                    state: {selected: !0},
+                                    elementid: "{{ server.gethostname }}",
+                                    id: "{{ server.gethostname }}",
+                                    serverid: "{{ server.id }}"
+                                    },
+                                {% endif %}
+                            {% endfor %}
+                        ],
+                    },
+                {% endfor %}
+            ],
+        },
+        types: {
+            default: {icon: "fa fa-folder icon-state-warning icon-lg"},
+            file: {icon: "fa fa-file icon-state-warning icon-lg"}
+        },
+        plugins: ["types", "search", "sort", "checkbox"],
+        checkbox: {
+            "tie_selection": false
+        },
+    }).on("loaded.jstree", function (event, data) {
+        setTimeout(function () {
+            $("#server_list a").removeClass("jstree-clicked")
+        },100)
+    });;
+
+    $("#search").submit(function(e) {
+        e.preventDefault();
+        $("#server_list").jstree(true).search($("#q").val());
+    });
+
+    //uncheck server
+    $('#server_list')
+      // listen for event
+      .on('uncheck_node.jstree', function (e, data) {
+        //console.log(data);
+        var i, j, r = [];
+        for(i = 0, j = data.selected.length; i < j; i++) {
+          if ( data.instance.get_node(data.selected[i]).original.hasOwnProperty('ip') && data.instance.get_node(data.selected[i]).state.checked == false){
+            r.push(data.instance.get_node(data.selected[i]));
+            //when user unchecked the terminal then delete the correspond terminal
+            //console.log(data.instance.get_node(data.selected[i]).original.elementid);
+            delete terminals[data.instance.get_node(data.selected[i]).original.elementid]
+            //console.log(terminals);
+            // remove unchecked server
+            $("#"+data.instance.get_node(data.selected[i]).original.elementid+"parent").remove();
+            //close ssh terminal threading
+            ws.send(JSON.stringify(["close", 'close', data.instance.get_node(data.selected[i]).original.elementid ]));
+          }
+        }
+        //console.log('uncheck',r);
+      })
+      // create the instance
+      .jstree();
+
+    //check server
+    $('#server_list')
+      // listen for event
+      .on('check_node.jstree', function (e, data) {
+        var selected = $("#server_list").jstree().get_checked(true);
+        var i, j, r = [];
+        for(i = 0, j = selected.length; i < j; i++) {
+          if ( selected[i].original.hasOwnProperty('ip') ){
+            r.push(selected[i]);
+            //add checked server
+            //console.log(selected[i].parents[0]);
+            serverterminal(selected[i].original.text,selected[i].original.elementid,selected[i].original.ip,selected[i].original.serverid,selected[i].original.id);
+          }
+        }
+        //console.log('check',r);
+      })
+      // create the instance
+      .jstree();
+
+
+    function serverterminal(title,id,ip,serverid,jstreeid) {
+        html = '<div class="col-md-6" id="'+id +'parent"'+' jstreeid="'+jstreeid+'">\n' +
+            '        <div class="box box-primary">\n' +
+            '        <div class="box-header with-border">\n' +
+            '        <h3 class="box-title">' + title + '</h3>\n'
+        html += '    <div class="box-tools pull-right">\n' +
+            '        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>\n' +
+            '        </button>\n' +
+            '        <button type="button" class="btn btn-box-tool" data-widget="remove" onclick="unchecknode($(this).parents()[3].attributes.jstreeid.nodeValue,$(this).parents()[3].id)"><i class="fa fa-times"></i></button>\n' +
+            '    </div>\n' +
+            '    </div>\n' +
+            '    <div class="box-body">\n' +
+            '        <div id="' + id + '" style="height:300px">\n' +
+            '        </div>\n' +
+            '        </div>\n' +
+            '        </div>\n' +
+            '\n' +
+            '        </div>'
+        if ($("#"+id).length <= 0 ){
+            $("#terminal-container").append(html);
+            //console.log(id);
+            make_terminal(document.getElementById(id), {rows: 40, cols: 90}, ip, serverid);
+        }
+    }
+
+
+    $("#autocomplete").typeahead({
+        loadingAnimation: true,
+        fitToElement: false,
+        items: 'all',
+        source: function (query, process) {
+            return $.ajax({
+                url: '{% url "batchcommandexecute" %}',
+                type: 'post',
+                data: {cmd: query},
+                success: function (result) {
+                    $('#autocomplete').typeahead('close');
+                    $('#autocomplete').focus();
+                    return process(result.message);
+                },
+            });
+        }
+    });
+
+    function executecommand(){
+        if ($("#autocomplete").val().length >0){
+            var data = $("#autocomplete").val();
+            var selected = $("#server_list").jstree().get_checked(true);
+            var i, j, r = [];
+            $('#autocomplete').focus();
+            for(i = 0, j = selected.length; i < j; i++) {
+              if ( selected[i].original.hasOwnProperty('ip') ){
+                r.push(selected[i]);
+                //console.log(selected[i]);
+                ws.send(JSON.stringify(["command", data, selected[i].original.elementid ]));
+              }
+            }
+            //console.log(r);
+        }else{
+            alert($("#autocomplete").val());
+        };
+    };
+
+    $('input').keypress(function (e) {
+        if (e.keyCode == 13) {
+            executecommand();
+            return false;
+        }
+    });
+
+    function unchecknode(jstreeid,id) {
+        $("#server_list").jstree(true).uncheck_node(jstreeid+'_anchor');
+        $("#"+id).remove();
+        //when user close selected terminal then delete correspondly terminals
+        delete terminals[id.split('parent')[0]]
+        //close ssh terminal threading
+        ws.send(JSON.stringify(["close", 'close', id.split('parent')[0] ]));
+        //console.log(terminals);
+    }
+</script>
+{% endblock %}
