@@ -44,13 +44,14 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
     channel_session = True
     channel_session_user = True
 
-    def connect(self, message,**kwargs):
+    def connect(self, message, **kwargs):
         self.message.reply_channel.send({"accept": True})
-        #set ip and id property to auth
-        self.ip = self.kwargs.get("ip",None)
-        self.id = self.kwargs.get("id",None)
+        # set ip and id property to auth
+        self.ip = self.kwargs.get("ip", None)
+        self.id = self.kwargs.get("id", None)
         if not self.authenticate:
-            self.message.reply_channel.send({"text":  '\033[1;3;31mYou must login to the system!\033[0m'}, immediately=True)            
+            self.message.reply_channel.send(
+                {"text": '\033[1;3;31mYou must login to the system!\033[0m'}, immediately=True)
             self.message.reply_channel.send({"accept": False})
 
     def disconnect(self, message):
@@ -78,6 +79,15 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
                            json.dumps(['close']))
 
     def receive(self, text=None, bytes=None, **kwargs):
+        self.ip = self.kwargs.get("ip", None)
+        self.id = self.kwargs.get("id", None)
+        # handle auth
+        method = "key"
+        username = None #auth ssh username
+        password = None
+        key = None
+        port = 22
+        user = None #auth user
         try:
             if text:
                 data = json.loads(text)
@@ -89,30 +99,12 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
                     id = data[4]
                     self.ssh.set_missing_host_key_policy(
                         paramiko.AutoAddPolicy())
-                    #permission control
-                    self.message.reply_channel.send(
-                        {"bytes": '\033[1;3;31mYou have not permission to connect server {0}!\033[0m'.format(ip)}, immediately=True)
-                    self.message.reply_channel.send({"accept": False})
-                    logger.error("{0} have not permission to connect server {1}!".format(self.message.user.username, ip))
-                    return
-                    try:
-                        data = ServerInfor.objects.get(
-                            ip=ip, credential__protocol__contains='ssh')
-                        port = data.credential.port
-                        method = data.credential.method
-                        username = data.credential.username
-                        if method == 'password':
-                            password = data.credential.password
-                        else:
-                            key = data.credential.key
-                    except ObjectDoesNotExist:
-                        # self.message.reply_channel.send({"text": json.dumps(
-                            # ['stdout', '\033[1;3;31mConnect to server! Server ip doesn\'t exist!\033[0m'])}, immediately=True)
-                        self.message.reply_channel.send(
-                            {"bytes": '\033[1;3;31mConnect to server! Server ip doesn\'t exist!\033[0m'}, immediately=True)
-                        self.message.reply_channel.send({"accept": False})
-                        logger.error(
-                            "Connect to server! Server ip {0} doesn\'t exist!".format(ip))
+                    # permission control
+                    # self.message.reply_channel.send(
+                    # {"text": '\033[1;3;31mYou have not permission to connect server {0}!\033[0m'.format(ip)}, immediately=True)
+                    #self.message.reply_channel.send({"accept": False})
+                    #logger.error("{0} have not permission to connect server {1}!".format(self.message.user.username, ip))
+                    # return
                     try:
                         if method == 'password':
                             self.ssh.connect(
@@ -132,9 +124,7 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
                                 private_key = paramiko.Ed25519Key.from_private_key(
                                     private_key)
                             else:
-                                # self.message.reply_channel.send({"text": json.dumps(
-                                    # ['stdout', '\033[1;3;31munknown or unsupported key type, only support rsa dsa ed25519 ecdsa key type\033[0m'])}, immediately=True)
-                                self.message.reply_channel.send({"bytes":
+                                self.message.reply_channel.send({"text":
                                                                  '\033[1;3;31munknown or unsupported key type, only support rsa dsa ed25519 ecdsa key type\033[0m'}, immediately=True)
                                 self.message.reply_channel.send(
                                     {"accept": False})
@@ -143,23 +133,18 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
                             self.ssh.connect(
                                 ip, port=port, username=username, pkey=private_key, timeout=3)
                         # when connect server sucess record log
-                        audit_log = Log.objects.create(user=User.objects.get(
-                            username=self.message.user), server=data, channel=self.message.reply_channel.name, width=width, height=height)
+                        audit_log = Log.objects.create(user=user, server=ip, channel=self.message.reply_channel.name, width=width, height=height)
                         audit_log.save()
                     except socket.timeout:
-                        # self.message.reply_channel.send({"text": json.dumps(
-                            # ['stdout', '\033[1;3;31mConnect to server time out\033[0m'])}, immediately=True)
                         self.message.reply_channel.send(
-                            {"bytes": '\033[1;3;31mConnect to server time out\033[0m'}, immediately=True)
+                            {"text": '\033[1;3;31mConnect to server time out\033[0m'}, immediately=True)
                         logger.error(
                             "Connect to server {0} time out!".format(ip))
                         self.message.reply_channel.send({"accept": False})
                         return
                     except Exception as e:
-                        # self.message.reply_channel.send({"text": json.dumps(
-                            # ['stdout', '\033[1;3;31mCan not connect to server: {0}\033[0m'.format(e)])}, immediately=True)
                         self.message.reply_channel.send(
-                            {"bytes": '\033[1;3;31mCan not connect to server: {0}\033[0m'.format(e)}, immediately=True)
+                            {"text": '\033[1;3;31mCan not connect to server: {0}\033[0m'.format(e)}, immediately=True)
                         self.message.reply_channel.send({"accept": False})
                         logger.error(
                             "Can not connect to server {0}: {1}".format(ip, e))
@@ -192,17 +177,13 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
                     self.disconnect(self.message)
                     return
                 else:
-                    # self.message.reply_channel.send({"text": json.dumps(
-                        # ['stdout', '\033[1;3;31mUnknow command found!\033[0m'])}, immediately=True)
-                    #self.message.reply_channel.send({"bytes": '\033[1;3;31mUnknow command found!\033[0m'}, immediately=True)
                     self.queue.publish(self.message.reply_channel.name, text)
-                    #logger.error("Unknow command found!")
+                    logger.error("Unknow command found!")
             elif bytes:
                 self.queue.publish(
                     self.message.reply_channel.name, bytes)
         except socket.error:
-            audit_log = Log.objects.get(user=User.objects.get(
-                username=self.message.user), channel=self.message.reply_channel.name)
+            audit_log = Log.objects.get(user=user, channel=self.message.reply_channel.name)
             audit_log.is_finished = True
             audit_log.end_time = now()
             audit_log.save()
