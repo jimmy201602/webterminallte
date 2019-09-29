@@ -35,27 +35,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Index(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
-    template_name = 'webterminal/index.html'
-    permission_required = 'common.can_connect_serverinfo'
-    raise_exception = False
-    login_url = reverse_lazy('admin:login')
-
-    def get_context_data(self, **kwargs):
-        context = super(Index, self).get_context_data(**kwargs)
-        # from common.models import ServerGroup, CommandsSequence, Credential, ServerInfor, Log        
-        # try:
-            # groups = Permission.objects.get(
-                # user__username=self.request.user.username)
-        # except ObjectDoesNotExist:
-            # logger.error('user:{0} have not permission to visit webterminal!'.format(
-                # self.request.user.username))
-            # return context
-        # context['server_groups'] = ServerGroup.objects.filter(
-            # name__in=[group.name for group in groups.groups.all()])
-        return context
-
-
 class SshLogPlay(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Log
     template_name = 'webterminal/sshlogplay.html'

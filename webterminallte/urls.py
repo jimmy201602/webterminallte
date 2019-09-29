@@ -15,7 +15,7 @@ Including another URLconf
 from __future__ import absolute_import
 from django.conf.urls import url, include
 from django.contrib import admin
-from webterminallte.views import Index, SshLogPlay, SshTerminalKill, SshTerminalMonitor, SshConnect
+from webterminallte.views import SshLogPlay, SshTerminalKill, SshTerminalMonitor, SshConnect
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.static import serve
 from django.conf import settings
@@ -23,7 +23,6 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^$', Index.as_view(), name='index'),
     url(r'^sshconnect/(?P<ip>(?:(?:0|1[\d]{0,2}|2(?:[0-4]\d?|5[0-5]?|[6-9])?|[3-9]\d?)\.){3}(?:0|1[\d]{0,2}|2(?:[0-4]\d?|5[0-5]?|[6-9])?|[3-9]\d?))/(?P<serverid>[0-9]+)/$',
         SshConnect.as_view(), name='sshconnect'),
     url(r'^sshterminalkill/$', SshTerminalKill.as_view(), name='sshterminalkill'),
