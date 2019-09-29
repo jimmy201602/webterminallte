@@ -15,7 +15,7 @@ Including another URLconf
 from __future__ import absolute_import
 from django.conf.urls import url, include
 from django.contrib import admin
-from webterminallte.views import SshLogPlay, SshTerminalKill, SshTerminalMonitor, SshConnect
+from webterminallte.views import SshLogPlay, SshTerminalKill, SshTerminalMonitor, SshConnect, InitialSshApi
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.static import serve
 from django.conf import settings
@@ -30,6 +30,8 @@ urlpatterns = [
         SshLogPlay.as_view(), name='sshlogplay'),
     url(r'^sshterminalmonitor/(?P<pk>[0-9]+)/',
         SshTerminalMonitor.as_view(), name='sshterminalmonitor'),
+    url(r'^webterminal/initialssh/',
+        InitialSshApi.as_view(), name='initialsshapi'),
     url(r'^i18n/', include('django.conf.urls.i18n')),
 ]
 

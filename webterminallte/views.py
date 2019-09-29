@@ -17,7 +17,7 @@ from django.views.generic.detail import DetailView
 from django.core.serializers import serialize
 from webterminallte.settings import MEDIA_URL
 from django.utils.timezone import now
-from common.utils import get_redis_instance
+from common.utils import get_redis_instance, EnDeCrypt
 from common.models import Log, CommandLog
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.views.generic import TemplateView
@@ -28,6 +28,7 @@ import traceback
 import re
 import uuid
 import logging
+import ast
 logger = logging.getLogger(__name__)
 
 
@@ -47,6 +48,7 @@ class SshTerminalMonitor(DetailView):
     model = Log
     template_name = 'webterminal/sshlogmonitor.html'
     raise_exception = True
+
 
 class SshTerminalKill(View):
 
@@ -82,3 +84,33 @@ class SshConnect(TemplateView):
         context['ip'] = self.kwargs.get('ip')
         context['serverid'] = self.kwargs.get('serverid')
         return context
+
+
+class InitialSshApi(View):
+
+    def post(self, **kwargs):
+        if request.is_ajax():
+            data = request.POST.get("data", None)
+            if data:
+                try:
+                    endeins = EnDeCrypt()
+                    data = ast.literal_eval(endeins.decrypt(data))
+                    temp_key = uuid.uuid4().hex
+                    cache_data = {
+                        "nickname": data.get("nickname"),
+                        "ip": data.get("ip"),
+                        "port": data.get("port"),
+                        "public_ip": data.get("public_ip", None),
+                        "private_ip": data.get("private_ip", None),
+                        "admin_user": data.get("admin_user"),
+                        "system_user": data.get("system_user"),
+                        "user_key": data.get("user_key")
+                    }
+                    # get redis connection
+                    conn = get_redis_instance()
+                    conn.set(temp_key, json.dumps(cache_data))
+                    conn.expire(temp_key, 60)
+                    return JsonResponse({'status': True, 'message': 'Success!', "key": temp_key})
+                except Exception:
+                    return JsonResponse({'status': False, 'message': 'Illegal data!'})
+        return JsonResponse({'status': False, 'message': 'Illegal request or data!'})
