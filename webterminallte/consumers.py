@@ -53,6 +53,7 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
             self.message.reply_channel.send(
                 {"text": '\033[1;3;31mYou must login to the system!\033[0m'}, immediately=True)
             self.message.reply_channel.send({"accept": False})
+            self.close()
 
     def disconnect(self, message):
         # close threading

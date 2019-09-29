@@ -9,16 +9,25 @@ import base64
 from Crypto.Cipher import AES
 
 
+def get_redis_instance():
+    from webterminallte.asgi import channel_layer
+    return channel_layer._connection_list[0]
+
+
 class WebsocketAuth(object):
 
     @property
     def authenticate(self):
         # user auth function to be implement
         if self.ip and self.id:
-            return True
-        if self.message.user.is_authenticated():
-            return True
-        else:
+            conn = get_redis_instance()
+            data = conn.get(self.id)
+            try:
+                data = json.loads(data)
+            except:
+                return False
+            if data and data.get("ip", "") == self.ip:
+                return True
             return False
 
     def haspermission(self, perm):
@@ -27,11 +36,6 @@ class WebsocketAuth(object):
             return True
         else:
             return False
-
-
-def get_redis_instance():
-    from webterminallte.asgi import channel_layer
-    return channel_layer._connection_list[0]
 
 
 def mkdir_p(path):
