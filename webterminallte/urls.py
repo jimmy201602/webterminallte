@@ -20,6 +20,8 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.views.static import serve
 from django.conf import settings
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.views.decorators.csrf import csrf_exempt
+
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -30,8 +32,8 @@ urlpatterns = [
         SshLogPlay.as_view(), name='sshlogplay'),
     url(r'^sshterminalmonitor/(?P<pk>[0-9]+)/',
         SshTerminalMonitor.as_view(), name='sshterminalmonitor'),
-    url(r'^webterminal/initialssh/',
-        InitialSshApi.as_view(), name='initialsshapi'),
+    url(r'^webterminal/initialssh/$',
+        csrf_exempt(InitialSshApi.as_view()), name='initialsshapi'),
     url(r'^i18n/', include('django.conf.urls.i18n')),
 ]
 

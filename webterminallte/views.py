@@ -88,7 +88,7 @@ class SshConnect(TemplateView):
 
 class InitialSshApi(View):
 
-    def post(self, **kwargs):
+    def post(self, request):
         if request.is_ajax():
             data = request.POST.get("data", None)
             if data:
