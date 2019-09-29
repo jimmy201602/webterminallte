@@ -5,6 +5,8 @@ try:
     import simplejson as json
 except ImportError:
     import json
+import base64
+from Crypto.Cipher import AES
 
 
 class WebsocketAuth(object):
@@ -56,3 +58,29 @@ class CustomeFloatEncoder(json.JSONEncoder):
         if isinstance(obj, float):
             return format(obj, '.6f')
         return json.JSONEncoder.encode(self, obj)
+
+
+class EnDeCrypt(object):
+
+    def __init__(self, key='HOrUmuJ4bCVG6EYu2docoRNNYSdDpJJw'):
+        self.key = key
+
+    def add_to_16(self, value):
+        while len(value) % 16 != 0:
+            value += '\0'
+        return str.encode(value)
+
+    def encrypt(self, text):
+        aes = AES.new(self.add_to_16(self.key), AES.MODE_ECB)
+
+        encrypt_aes = aes.encrypt(self.add_to_16(text))
+        encrypted_text = str(base64.encodebytes(
+            encrypt_aes), encoding='utf-8').replace('\n', '')
+        return encrypted_text
+
+    def decrypt(self, text):
+        aes = AES.new(self.add_to_16(self.key), AES.MODE_ECB)
+        base64_decrypted = base64.decodebytes(text.encode(encoding='utf-8'))
+        decrypted_text = str(aes.decrypt(base64_decrypted),
+                             encoding='utf-8').replace('\0', '')
+        return decrypted_text
