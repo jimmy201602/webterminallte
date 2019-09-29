@@ -89,28 +89,36 @@ class SshConnect(TemplateView):
 class InitialSshApi(View):
 
     def post(self, request):
-        if request.is_ajax():
-            data = request.POST.get("data", None)
-            if data:
-                try:
-                    endeins = EnDeCrypt()
-                    data = ast.literal_eval(endeins.decrypt(data))
-                    temp_key = uuid.uuid4().hex
-                    cache_data = {
-                        "nickname": data.get("nickname"),
-                        "ip": data.get("ip"),
-                        "port": data.get("port"),
-                        "public_ip": data.get("public_ip", None),
-                        "private_ip": data.get("private_ip", None),
-                        "admin_user": data.get("admin_user"),
-                        "system_user": data.get("system_user"),
-                        "user_key": data.get("user_key")
-                    }
-                    # get redis connection
-                    conn = get_redis_instance()
-                    conn.set(temp_key, json.dumps(cache_data))
-                    conn.expire(temp_key, 60)
-                    return JsonResponse({'status': True, 'message': 'Success!', "key": temp_key})
-                except Exception:
-                    return JsonResponse({'status': False, 'message': 'Illegal data!'})
+        data = self.request.POST.get("data", None)
+        if not data:
+            try:
+                data = json.loads(request.body)
+                if isinstance(data,str):
+                    data = ast.literal_eval(data)
+                data = data.get("data",None)
+            except:
+                pass
+        if data:
+            try:
+                endeins = EnDeCrypt()
+                data = ast.literal_eval(endeins.decrypt(data))
+                temp_key = uuid.uuid4().hex
+                cache_data = {
+                    "nickname": data.get("nickname"),
+                    "ip": data.get("ip"),
+                    "port": data.get("port"),
+                    "public_ip": data.get("public_ip", None),
+                    "private_ip": data.get("private_ip", None),
+                    "admin_user": data.get("admin_user"),
+                    "system_user": data.get("system_user"),
+                    "user_key": data.get("user_key")
+                }
+                # get redis connection
+                conn = get_redis_instance()
+                conn.set(temp_key, json.dumps(cache_data))
+                conn.expire(temp_key, 60)
+                return JsonResponse({'status': True, 'message': 'Success!', "key": temp_key})
+            except Exception as e:
+                print(traceback.print_exc())
+                return JsonResponse({'status': False, 'message': 'Illegal request or data!',"data":data})
         return JsonResponse({'status': False, 'message': 'Illegal request or data!'})

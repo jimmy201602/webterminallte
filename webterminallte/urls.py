@@ -25,7 +25,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^webterminal/(?P<ip>(?:(?:0|1[\d]{0,2}|2(?:[0-4]\d?|5[0-5]?|[6-9])?|[3-9]\d?)\.){3}(?:0|1[\d]{0,2}|2(?:[0-4]\d?|5[0-5]?|[6-9])?|[3-9]\d?))/(?P<serverid>[0-9]+)/$',
+    url(r'^webterminal/(?P<ip>(?:(?:0|1[\d]{0,2}|2(?:[0-4]\d?|5[0-5]?|[6-9])?|[3-9]\d?)\.){3}(?:0|1[\d]{0,2}|2(?:[0-4]\d?|5[0-5]?|[6-9])?|[3-9]\d?))/(?P<serverid>[\w]+)/$',
         SshConnect.as_view(), name='sshconnect'),
     url(r'^sshterminalkill/$', SshTerminalKill.as_view(), name='sshterminalkill'),
     url(r'^sshlogplay/(?P<pk>[0-9]+)/',
