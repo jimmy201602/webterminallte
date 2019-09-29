@@ -82,30 +82,31 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
     def receive(self, text=None, bytes=None, **kwargs):
         self.ip = self.kwargs.get("ip", None)
         self.id = self.kwargs.get("id", None)
-        # get auth info from cache
-        conn = get_redis_instance()
-        authinfo = conn.get(self.id)
-        # handle auth info
-        try:
-            authinfo = json.loads(authinfo)
-            method = "password"
-            # auth server ssh username
-            username = authinfo.get("system_user")
-            password = authinfo.get("password", "")
-            key = authinfo.get("user_key")
-            port = authinfo.get("port")
-            loginuser = data.get("nickname")  # auth user
-        except:
-            self.message.reply_channel.send(
-                {"text": '\033[1;3;31mHandle auth info encountered a error,Please contact your administrator!\033[0m'}, immediately=True)
-            self.message.reply_channel.send({"accept": False})
-            self.close()
-            return
         try:
             if text:
                 data = json.loads(text)
                 begin_time = time.time()
                 if isinstance(data, list) and data[0] == 'ip' and len(data) == 5:
+                    # get auth info from cache
+                    conn = get_redis_instance()
+                    authinfo = conn.get(self.id)
+                    # handle auth info
+                    try:
+                        authinfo = json.loads(authinfo)
+                        method = "password"
+                        # auth server ssh username
+                        username = authinfo.get("system_user")
+                        password = authinfo.get("password", "")
+                        key = authinfo.get("user_key")
+                        port = authinfo.get("port")
+                        loginuser = data.get("nickname")  # auth user
+                    except:
+                        self.message.reply_channel.send(
+                            {"text": '\033[1;3;31mHandle auth info encountered a error,Please contact your administrator!\033[0m'}, immediately=True)
+                        self.message.reply_channel.send({"accept": False})
+                        self.close()
+                        return
+
                     ip = data[1]
                     width = data[2]
                     height = data[3]
@@ -198,7 +199,7 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
                     self.message.reply_channel.name, bytes)
         except socket.error:
             audit_log = Log.objects.get(
-                user=loginuser, channel=self.message.reply_channel.name)
+                channel=self.message.reply_channel.name)
             audit_log.is_finished = True
             audit_log.end_time = now()
             audit_log.save()
