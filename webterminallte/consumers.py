@@ -82,13 +82,25 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
     def receive(self, text=None, bytes=None, **kwargs):
         self.ip = self.kwargs.get("ip", None)
         self.id = self.kwargs.get("id", None)
-        # handle auth
-        method = "password"
-        username = "root"  # auth server ssh username
-        password = "root"
-        key = None
-        port = 22
-        loginuser = "test"  # auth user
+        # get auth info from cache
+        conn = get_redis_instance()
+        authinfo = conn.get(self.id)
+        # handle auth info
+        try:
+            authinfo = json.loads(authinfo)
+            method = "password"
+            # auth server ssh username
+            username = authinfo.get("system_user")
+            password = authinfo.get("password", "")
+            key = authinfo.get("user_key")
+            port = authinfo.get("port")
+            loginuser = data.get("nickname")  # auth user
+        except:
+            self.message.reply_channel.send(
+                {"text": '\033[1;3;31mHandle auth info encountered a error,Please contact your administrator!\033[0m'}, immediately=True)
+            self.message.reply_channel.send({"accept": False})
+            self.close()
+            return
         try:
             if text:
                 data = json.loads(text)
@@ -199,6 +211,14 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
             logger.error(traceback.print_exc())
             self.closessh()
             self.close()
+
+    def close(self, status=True):
+        """
+        Closes the WebSocket from the server end
+        """
+        conn = get_redis_instance()
+        conn.delete(self.kwargs.get("id", None))
+        self.message.reply_channel.send({"close": status})
 
 
 class SshTerminalMonitor(WebsocketConsumer, WebsocketAuth):
