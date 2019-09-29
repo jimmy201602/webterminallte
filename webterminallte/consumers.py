@@ -21,6 +21,7 @@ import os
 from channels import Group
 import traceback
 from common.utils import WebsocketAuth, get_redis_instance
+from common.models import Log
 import logging
 try:
     from StringIO import StringIO
@@ -46,13 +47,8 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
     def connect(self, message):
         self.message.reply_channel.send({"accept": True})
         if not self.authenticate:
-            self.message.reply_channel.send({"text": json.dumps(
-                {'status': False, 'message': 'You must login to the system!'})}, immediately=True)
+            self.message.reply_channel.send({"text":  '\033[1;3;31mYou must login to the system!\033[0m'}, immediately=True)            
             self.message.reply_channel.send({"accept": False})
-        # else:
-            # permission auth
-            # self.message.reply_channel.send({"text": json.dumps(
-            # ['channel_name', self.message.reply_channel.name])}, immediately=True)
 
     def disconnect(self, message):
         # close threading
@@ -79,7 +75,6 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
                            json.dumps(['close']))
 
     def receive(self, text=None, bytes=None, **kwargs):
-        from common.models import ServerInfor, ServerGroup, CommandsSequence, Log        
         try:
             if text:
                 data = json.loads(text)
@@ -91,20 +86,13 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
                     id = data[4]
                     self.ssh.set_missing_host_key_policy(
                         paramiko.AutoAddPolicy())
-                    try:
-                        Permission.objects.get(user__username=self.message.user.username, groups__servers__ip=ip,
-                                               groups__servers__id=id, groups__servers__credential__protocol__contains='ssh')
-                    except ObjectDoesNotExist:
-                        # self.message.reply_channel.send({"text": json.dumps(
-                            # ['stdout', '\033[1;3;31mYou have not permission to connect server {0}!\033[0m'.format(ip)])}, immediately=True)
-                        self.message.reply_channel.send(
-                            {"bytes": '\033[1;3;31mYou have not permission to connect server {0}!\033[0m'.format(ip)}, immediately=True)
-                        self.message.reply_channel.send({"accept": False})
-                        logger.error("{0} have not permission to connect server {1}!".format(
-                            self.message.user.username, ip))
-                        return
-                    except MultipleObjectsReturned:
-                        pass
+                    #permission control
+                    self.message.reply_channel.send(
+                        {"bytes": '\033[1;3;31mYou have not permission to connect server {0}!\033[0m'.format(ip)}, immediately=True)
+                    self.message.reply_channel.send({"accept": False})
+                    logger.error("{0} have not permission to connect server {1}!".format(
+                        self.message.user.username, ip))
+                    return
                     try:
                         data = ServerInfor.objects.get(
                             ip=ip, credential__protocol__contains='ssh')
