@@ -44,8 +44,11 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
     channel_session = True
     channel_session_user = True
 
-    def connect(self, message):
+    def connect(self, message,**kwargs):
         self.message.reply_channel.send({"accept": True})
+        #set ip and id property to auth
+        self.ip = self.kwargs.get("ip",None)
+        self.id = self.kwargs.get("id",None)
         if not self.authenticate:
             self.message.reply_channel.send({"text":  '\033[1;3;31mYou must login to the system!\033[0m'}, immediately=True)            
             self.message.reply_channel.send({"accept": False})
@@ -90,8 +93,7 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
                     self.message.reply_channel.send(
                         {"bytes": '\033[1;3;31mYou have not permission to connect server {0}!\033[0m'.format(ip)}, immediately=True)
                     self.message.reply_channel.send({"accept": False})
-                    logger.error("{0} have not permission to connect server {1}!".format(
-                        self.message.user.username, ip))
+                    logger.error("{0} have not permission to connect server {1}!".format(self.message.user.username, ip))
                     return
                     try:
                         data = ServerInfor.objects.get(

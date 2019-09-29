@@ -11,7 +11,9 @@ class WebsocketAuth(object):
 
     @property
     def authenticate(self):
-        # user auth
+        # user auth function to be implement
+        if self.ip and self.id:
+            return True
         if self.message.user.is_authenticated():
             return True
         else:

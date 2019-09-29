@@ -116,7 +116,7 @@ jQuery(function($){
     function make_terminal(element, size, ip, id) {
 
         var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-        var ws_url = ws_scheme + '://' + window.location.host + '/ws/';
+        var ws_url = ws_scheme + '://' + window.location.host + '/ws/' + ip + "/" + id + "/";
 
         var term = new Terminal({
             // cols: size.cols,
