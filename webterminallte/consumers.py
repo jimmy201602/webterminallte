@@ -99,7 +99,7 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
                         password = authinfo.get("password", "")
                         key = authinfo.get("user_key")
                         port = authinfo.get("port")
-                        loginuser = data.get("nickname")  # auth user
+                        loginuser = authinfo.get("nickname")  # auth user
                     except:
                         self.message.reply_channel.send(
                             {"text": '\033[1;3;31mHandle auth info encountered a error,Please contact your administrator!\033[0m'}, immediately=True)

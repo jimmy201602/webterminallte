@@ -111,7 +111,8 @@ class InitialSshApi(View):
                     "private_ip": data.get("private_ip", None),
                     "admin_user": data.get("admin_user"),
                     "system_user": data.get("system_user"),
-                    "user_key": data.get("user_key")
+                    "user_key": data.get("user_key"),
+                    "password": data.get("password",None)
                 }
                 # get redis connection
                 conn = get_redis_instance()
