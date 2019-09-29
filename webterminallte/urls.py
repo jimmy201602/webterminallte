@@ -23,17 +23,13 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^sshconnect/(?P<ip>(?:(?:0|1[\d]{0,2}|2(?:[0-4]\d?|5[0-5]?|[6-9])?|[3-9]\d?)\.){3}(?:0|1[\d]{0,2}|2(?:[0-4]\d?|5[0-5]?|[6-9])?|[3-9]\d?))/(?P<serverid>[0-9]+)/$',
+    url(r'^webterminal/(?P<ip>(?:(?:0|1[\d]{0,2}|2(?:[0-4]\d?|5[0-5]?|[6-9])?|[3-9]\d?)\.){3}(?:0|1[\d]{0,2}|2(?:[0-4]\d?|5[0-5]?|[6-9])?|[3-9]\d?))/(?P<serverid>[0-9]+)/$',
         SshConnect.as_view(), name='sshconnect'),
     url(r'^sshterminalkill/$', SshTerminalKill.as_view(), name='sshterminalkill'),
     url(r'^sshlogplay/(?P<pk>[0-9]+)/',
         SshLogPlay.as_view(), name='sshlogplay'),
     url(r'^sshterminalmonitor/(?P<pk>[0-9]+)/',
         SshTerminalMonitor.as_view(), name='sshterminalmonitor'),
-    url(r'^accounts/login/$',
-        LoginView.as_view(template_name='admin/login.html'), name='login'),
-    url(r'^accounts/logout/$',
-        LogoutView.as_view(template_name='registration/logged_out.html'), name='logout'),
     url(r'^i18n/', include('django.conf.urls.i18n')),
 ]
 

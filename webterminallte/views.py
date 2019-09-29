@@ -27,19 +27,13 @@ from common.views import LoginRequiredMixin
 import traceback
 import re
 import uuid
-try:
-    import commands
-except ImportError:
-    import subprocess as commands
 import logging
 logger = logging.getLogger(__name__)
 
 
-class SshLogPlay(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class SshLogPlay(DetailView):
     model = Log
     template_name = 'webterminal/sshlogplay.html'
-    permission_required = 'common.can_play_log'
-    raise_exception = True
 
     def get_context_data(self, **kwargs):
         context = super(SshLogPlay, self).get_context_data(**kwargs)
@@ -49,15 +43,12 @@ class SshLogPlay(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
         return context
 
 
-class SshTerminalMonitor(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class SshTerminalMonitor(DetailView):
     model = Log
     template_name = 'webterminal/sshlogmonitor.html'
-    permission_required = 'common.can_monitor_serverinfo'
     raise_exception = True
 
-class SshTerminalKill(LoginRequiredMixin, PermissionRequiredMixin, View):
-    raise_exception = True
-    permission_required = 'common.can_kill_serverinfo'
+class SshTerminalKill(View):
 
     def post(self, request):
         if request.is_ajax():
@@ -83,11 +74,8 @@ class SshTerminalKill(LoginRequiredMixin, PermissionRequiredMixin, View):
                 return JsonResponse({'status': False, 'message': 'Request object does not exist!'})
 
 
-class SshConnect(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class SshConnect(TemplateView):
     template_name = 'webterminal/ssh.html'
-    permission_required = 'common.can_connect_serverinfo'
-    raise_exception = False
-    login_url = reverse_lazy('admin:login')
 
     def get_context_data(self, **kwargs):
         context = super(SshConnect, self).get_context_data(**kwargs)

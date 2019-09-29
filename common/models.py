@@ -16,7 +16,8 @@ import string
 
 
 class Log(models.Model):
-    # server = models.ForeignKey(ServerInfor, verbose_name=_('Server'))
+    server = models.GenericIPAddressField(
+        protocol='ipv4', verbose_name=_('Server IP'))
     channel = models.CharField(max_length=100, verbose_name=_(
         'Channel name'), blank=False, unique=True, editable=False)
     log = models.UUIDField(max_length=100, default=uuid.uuid4, verbose_name=_(
@@ -32,13 +33,6 @@ class Log(models.Model):
     width = models.PositiveIntegerField(default=90, verbose_name=_('Width'))
     height = models.PositiveIntegerField(
         default=40, verbose_name=_('Height'))
-    gucamole_client_id = models.CharField(max_length=100, verbose_name=_(
-        'Gucamole channel name'), blank=True, editable=False)
-    commercial_version = models.BooleanField(
-        default=False, verbose_name=_('Is Commercial Version'))
-
-    # def __str__(self):
-        # return self.server.name
 
     class Meta:
         permissions = (
@@ -64,9 +58,6 @@ class CommandLog(models.Model):
         ordering = [
             ('-datetime')
         ]
-
-    def __unicode__(self):
-        return self.log.user.username
 
     def __str__(self):
         return self.log.user.username
