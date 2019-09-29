@@ -82,12 +82,12 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
         self.ip = self.kwargs.get("ip", None)
         self.id = self.kwargs.get("id", None)
         # handle auth
-        method = "key"
-        username = None #auth ssh username
-        password = None
+        method = "password"
+        username = "root"  # auth server ssh username
+        password = "root"
         key = None
         port = 22
-        user = None #auth user
+        loginuser = "test"  # auth user
         try:
             if text:
                 data = json.loads(text)
@@ -133,7 +133,8 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
                             self.ssh.connect(
                                 ip, port=port, username=username, pkey=private_key, timeout=3)
                         # when connect server sucess record log
-                        audit_log = Log.objects.create(user=user, server=ip, channel=self.message.reply_channel.name, width=width, height=height)
+                        audit_log = Log.objects.create(
+                            user=username, loginuser=loginuser, server=ip, channel=self.message.reply_channel.name, width=width, height=height)
                         audit_log.save()
                     except socket.timeout:
                         self.message.reply_channel.send(
@@ -183,7 +184,8 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
                 self.queue.publish(
                     self.message.reply_channel.name, bytes)
         except socket.error:
-            audit_log = Log.objects.get(user=user, channel=self.message.reply_channel.name)
+            audit_log = Log.objects.get(
+                user=loginuser, channel=self.message.reply_channel.name)
             audit_log.is_finished = True
             audit_log.end_time = now()
             audit_log.save()

@@ -28,7 +28,8 @@ class Log(models.Model):
         auto_created=True, auto_now=True, verbose_name=_('End time'))
     is_finished = models.BooleanField(
         default=False, verbose_name=_('Is finished'))
-    user = models.CharField(max_length=255, verbose_name=_('User'))
+    loginuser = models.CharField(max_length=255, verbose_name=_('Login User'))
+    user = models.CharField(max_length=255, verbose_name=_('Server User'))
     width = models.PositiveIntegerField(default=90, verbose_name=_('Width'))
     height = models.PositiveIntegerField(
         default=40, verbose_name=_('Height'))
@@ -59,4 +60,4 @@ class CommandLog(models.Model):
         ]
 
     def __str__(self):
-        return self.log.user.username
+        return self.log.user
