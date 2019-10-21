@@ -55,14 +55,13 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
             self.message.reply_channel.send({"accept": False})
             self.close()
 
-    def disconnect(self, message):
+    def disconnect(self, message,**kwargs):
         # close threading
         self.closessh()
 
         self.message.reply_channel.send({"accept": False})
 
-        audit_log = Log.objects.get(user=User.objects.get(
-            username=self.message.user), channel=self.message.reply_channel.name)
+        audit_log = Log.objects.get(channel=self.message.reply_channel.name)
         audit_log.is_finished = True
         audit_log.end_time = now()
         audit_log.save()
