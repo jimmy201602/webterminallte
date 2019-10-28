@@ -92,7 +92,7 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
                     # handle auth info
                     try:
                         authinfo = json.loads(authinfo)
-                        method = "key"
+                        method = "password"
                         # auth server ssh username
                         username = authinfo.get("system_user")
                         password = authinfo.get("password", "")

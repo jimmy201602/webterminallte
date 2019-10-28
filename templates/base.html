@@ -48,7 +48,7 @@
 
   <header class="main-header">
     <!-- Logo -->
-    <a href="{%url 'index' %}" class="logo">
+    <a href="#" class="logo">
       <!-- mini logo for sidebar mini 50x50 pixels -->
       <span class="logo-mini"><b>{%trans 'W' %}</b>{%trans 'T' %}</span>
       <!-- logo for regular state and mobile devices -->
@@ -182,7 +182,7 @@
                   <a href="#" class="btn btn-default btn-flat">{%trans 'Profile' %}</a>
                 </div>
                 <div class="pull-right">
-                  <a href="{% url 'logout' %}" class="btn btn-default btn-flat">{%trans 'logout' %}</a>
+                  <a href="#" class="btn btn-default btn-flat">{%trans 'logout' %}</a>
                 </div>
               </li>
             </ul>
@@ -205,7 +205,7 @@
             </span>
           </a>
           <ul class="treeview-menu">
-            {% if perms.common.can_connect_serverinfo %}<li class=""><a href="{% url 'index' %}"><i class="fa fa-laptop"></i> {%trans 'webterminal' %}</a></li>{% endif%}
+            <li class=""><a href="{% url 'logslist' %}"><i class="fa fa-laptop"></i> {%trans 'logslist' %}</a></li>
           </ul>
         </li>
       </ul>

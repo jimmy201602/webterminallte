@@ -29,7 +29,30 @@ import re
 import uuid
 import logging
 import ast
+import pytz
 logger = logging.getLogger(__name__)
+
+
+class LogList(ListView):
+    model = Log
+    template_name = 'webterminal/logslist.html'
+    permission_required = 'common.can_view_log'
+    raise_exception = True
+
+
+class CommandLogList(LoginRequiredMixin, PermissionRequiredMixin, View):
+    permission_required = 'common.can_view_command_log'
+    raise_exception = True
+
+    def post(self, request):
+        if request.is_ajax():
+            id = request.POST.get('id', None)
+            data = CommandLog.objects.filter(log__id=id)
+            if data.count() == 0:
+                return JsonResponse({'status': False, 'message': 'Request object not exist!'})
+            return JsonResponse({'status': True, 'message': [{'datetime': i.datetime.astimezone(pytz.timezone("Asia/Shanghai")).strftime('%Y-%m-%d %H:%M:%S'), 'command': i.command} for i in data]})
+        else:
+            return JsonResponse({'status': False, 'message': 'Method not allowed!'})
 
 
 class SshLogPlay(DetailView):
@@ -93,9 +116,9 @@ class InitialSshApi(View):
         if not data:
             try:
                 data = json.loads(request.body)
-                if isinstance(data,str):
+                if isinstance(data, str):
                     data = ast.literal_eval(data)
-                data = data.get("data",None)
+                data = data.get("data", None)
             except:
                 pass
         if data:
@@ -112,7 +135,7 @@ class InitialSshApi(View):
                     "admin_user": data.get("admin_user"),
                     "system_user": data.get("system_user"),
                     "user_key": data.get("user_key"),
-                    "password": data.get("password",None)
+                    "password": data.get("password", None)
                 }
                 # get redis connection
                 conn = get_redis_instance()
@@ -121,5 +144,5 @@ class InitialSshApi(View):
                 return JsonResponse({'status': True, 'message': 'Success!', "key": temp_key})
             except Exception as e:
                 print(traceback.print_exc())
-                return JsonResponse({'status': False, 'message': 'Illegal request or data!',"data":data})
+                return JsonResponse({'status': False, 'message': 'Illegal request or data!', "data": data})
         return JsonResponse({'status': False, 'message': 'Illegal request or data!'})
