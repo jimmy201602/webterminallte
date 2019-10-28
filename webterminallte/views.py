@@ -33,18 +33,37 @@ import pytz
 logger = logging.getLogger(__name__)
 
 
-class LogList(ListView):
+class LogList(LoginRequiredMixin,ListView):
+    def dispatch(self, request, *args, **kwargs):
+        if "key" in kwargs.keys():
+            pass
+        # if kwargs["key"] != 22:
+            # raise PermissionDenied('403 Forbidden')
+        return super(LogList, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(LogList, self).get_context_data(**kwargs)
+        context['key'] = self.kwargs["key"]
+        return context
+
     model = Log
     template_name = 'webterminal/logslist.html'
     permission_required = 'common.can_view_log'
     raise_exception = True
 
 
-class CommandLogList(LoginRequiredMixin, PermissionRequiredMixin, View):
+class CommandLogList(LoginRequiredMixin, View):
     permission_required = 'common.can_view_command_log'
     raise_exception = True
 
-    def post(self, request):
+    def dispatch(self, request, *args, **kwargs):
+        if "key" in kwargs.keys():
+            pass
+        # if kwargs["key"] != 22:
+            # raise PermissionDenied('403 Forbidden')
+        return super(CommandLogList, self).dispatch(request, *args, **kwargs)
+
+    def post(self, request,**kwargs):
         if request.is_ajax():
             id = request.POST.get('id', None)
             data = CommandLog.objects.filter(log__id=id)

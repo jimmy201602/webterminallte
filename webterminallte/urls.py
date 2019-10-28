@@ -35,8 +35,8 @@ urlpatterns = [
     url(r'^webterminal/initialssh/$',
         csrf_exempt(InitialSshApi.as_view()), name='initialsshapi'),
     url(r'^i18n/', include('django.conf.urls.i18n')),
-    url(r'^logslist/$', LogList.as_view(), name='logslist'),
-    url(r'^commandsloglist/$', CommandLogList.as_view(), name='commandsloglist'),
+    url(r'^logslist/(?P<key>[\w]+)/$', LogList.as_view(), name='logslist'),
+    url(r'^commandsloglist/(?P<key>[\w]+)/$', CommandLogList.as_view(), name='commandsloglist'),
 ]
 
 

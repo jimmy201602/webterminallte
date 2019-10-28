@@ -248,7 +248,7 @@ function get_commands_detail(id) {
     });
     dialog.init(function(){
         $.ajax({
-            url: '{% url 'commandsloglist' %}',
+            url: '{% url 'commandsloglist' key %}',
             type: 'POST',
             data: {'id':id},
             success: function(data, textStatus, jqXHR) {
