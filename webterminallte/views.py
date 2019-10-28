@@ -37,16 +37,23 @@ logger = logging.getLogger(__name__)
 class LogList(ListView):
     def dispatch(self, request, *args, **kwargs):
         activate("zh_hans")
+        conn = get_redis_instance()
         if "key" in kwargs.keys():
             pass
-        # if kwargs["key"] != 22:
-            # raise PermissionDenied('403 Forbidden')
+        login_info = conn.get(kwargs["key"])
+        if login_info:
+            try:
+                login_info = json.loads(login_info)
+                self.request.user = login_info.get("nickname", "Anonymous")
+            except:
+                raise PermissionDenied('403 Forbidden')
+        else:
+            raise PermissionDenied('403 Forbidden')
         return super(LogList, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(LogList, self).get_context_data(**kwargs)
         context['key'] = self.kwargs["key"]
-        self.request.user = "test"
         return context
 
     model = Log
@@ -58,8 +65,18 @@ class CommandLogList(View):
     def dispatch(self, request, *args, **kwargs):
         if "key" in kwargs.keys():
             pass
-        # if kwargs["key"] != 22:
-            # raise PermissionDenied('403 Forbidden')
+        conn = get_redis_instance()
+        if "key" in kwargs.keys():
+            pass
+        login_info = conn.get(kwargs["key"])
+        if login_info:
+            try:
+                login_info = json.loads(login_info)
+                self.request.user = login_info.get("nickname", "Anonymous")
+            except:
+                raise PermissionDenied('403 Forbidden')
+        else:
+            raise PermissionDenied('403 Forbidden')
         return super(CommandLogList, self).dispatch(request, *args, **kwargs)
 
     def post(self, request, **kwargs):
