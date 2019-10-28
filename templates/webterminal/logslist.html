@@ -80,9 +80,7 @@
                                 {% else %}
                                     <a class="btn btn-xs btn-success" onclick="monitor('{{element.user.username}}','{{element.server.ip}}','{{element.start_time|timezone:"Asia/Shanghai"}}','{% url 'sshterminalmonitor' element.id %}',)">{%trans 'monitor' %}</a>
                                 {% endif %}
-                                {% if perms.common.can_view_command_log %}
-                                    <a class="btn btn-xs btn-warning" onclick="get_commands_detail('{{element.id}}')">{%trans 'commands' %}</a>
-                                {% endif %}
+                                <a class="btn btn-xs btn-warning" onclick="get_commands_detail('{{element.id}}')">{%trans 'commands' %}</a>
                             </td>
                         </tr>
                         {% endfor %}

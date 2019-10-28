@@ -238,10 +238,7 @@ class SshTerminalMonitor(WebsocketConsumer, WebsocketAuth):
             self.message.reply_channel.send({"text": json.dumps(
                 {'status': False, 'message': 'You must login to the system!'})}, immediately=True)
             self.message.reply_channel.send({"accept": False})
-        if not self.haspermission('common.can_monitor_serverinfo'):
-            self.message.reply_channel.send({"text": json.dumps(
-                {'status': False, 'message': 'You have not permission to monitor user ssh action!'})}, immediately=True)
-            self.message.reply_channel.send({"accept": False})
+            return
         self.message.reply_channel.send({"accept": True})
         Group(channel).add(self.message.reply_channel.name)
 
