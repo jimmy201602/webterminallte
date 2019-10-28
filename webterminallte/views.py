@@ -30,11 +30,13 @@ import uuid
 import logging
 import ast
 import pytz
+from django.utils.translation import activate
 logger = logging.getLogger(__name__)
 
 
 class LogList(ListView):
     def dispatch(self, request, *args, **kwargs):
+        activate("zh_hans")
         if "key" in kwargs.keys():
             pass
         # if kwargs["key"] != 22:
