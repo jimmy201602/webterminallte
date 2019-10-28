@@ -38,8 +38,8 @@ class LogList(ListView):
     def dispatch(self, request, *args, **kwargs):
         activate("zh_hans")
         conn = get_redis_instance()
-        if "key" in kwargs.keys():
-            pass
+        if "key" not in kwargs.keys():
+            raise PermissionDenied('403 Forbidden')
         login_info = conn.get(kwargs["key"])
         if login_info:
             try:
@@ -63,11 +63,9 @@ class LogList(ListView):
 class CommandLogList(View):
 
     def dispatch(self, request, *args, **kwargs):
-        if "key" in kwargs.keys():
-            pass
+        if "key" not in kwargs.keys():
+            raise PermissionDenied('403 Forbidden')
         conn = get_redis_instance()
-        if "key" in kwargs.keys():
-            pass
         login_info = conn.get(kwargs["key"])
         if login_info:
             try:
