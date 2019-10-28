@@ -33,7 +33,7 @@ import pytz
 logger = logging.getLogger(__name__)
 
 
-class LogList(LoginRequiredMixin,ListView):
+class LogList(ListView):
     def dispatch(self, request, *args, **kwargs):
         if "key" in kwargs.keys():
             pass
@@ -44,17 +44,14 @@ class LogList(LoginRequiredMixin,ListView):
     def get_context_data(self, **kwargs):
         context = super(LogList, self).get_context_data(**kwargs)
         context['key'] = self.kwargs["key"]
+        self.request.user = "test"
         return context
 
     model = Log
     template_name = 'webterminal/logslist.html'
-    permission_required = 'common.can_view_log'
-    raise_exception = True
 
 
-class CommandLogList(LoginRequiredMixin, View):
-    permission_required = 'common.can_view_command_log'
-    raise_exception = True
+class CommandLogList(View):
 
     def dispatch(self, request, *args, **kwargs):
         if "key" in kwargs.keys():
@@ -63,7 +60,7 @@ class CommandLogList(LoginRequiredMixin, View):
             # raise PermissionDenied('403 Forbidden')
         return super(CommandLogList, self).dispatch(request, *args, **kwargs)
 
-    def post(self, request,**kwargs):
+    def post(self, request, **kwargs):
         if request.is_ajax():
             id = request.POST.get('id', None)
             data = CommandLog.objects.filter(log__id=id)
@@ -160,6 +157,39 @@ class InitialSshApi(View):
                 conn = get_redis_instance()
                 conn.set(temp_key, json.dumps(cache_data))
                 conn.expire(temp_key, 60)
+                return JsonResponse({'status': True, 'message': 'Success!', "key": temp_key})
+            except Exception as e:
+                print(traceback.print_exc())
+                return JsonResponse({'status': False, 'message': 'Illegal request or data!', "data": data})
+        return JsonResponse({'status': False, 'message': 'Illegal request or data!'})
+
+
+class InitialLoginApi(View):
+
+    def post(self, request):
+        data = self.request.POST.get("data", None)
+        if not data:
+            try:
+                data = json.loads(request.body)
+                if isinstance(data, str):
+                    data = ast.literal_eval(data)
+                data = data.get("data", None)
+            except:
+                pass
+        if data:
+            try:
+                endeins = EnDeCrypt()
+                data = ast.literal_eval(endeins.decrypt(data))
+                temp_key = uuid.uuid4().hex
+                cache_data = {
+                    "nickname": data.get("nickname"),
+                    "admin_user": data.get("admin_user"),
+                    "system_user": data.get("system_user"),
+                }
+                # get redis connection
+                conn = get_redis_instance()
+                conn.set(temp_key, json.dumps(cache_data))
+                conn.expire(temp_key, 60 * 30)
                 return JsonResponse({'status': True, 'message': 'Success!', "key": temp_key})
             except Exception as e:
                 print(traceback.print_exc())
