@@ -55,7 +55,7 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
             self.message.reply_channel.send({"accept": False})
             self.close()
 
-    def disconnect(self, message,**kwargs):
+    def disconnect(self, message, **kwargs):
         # close threading
         self.closessh()
 
@@ -232,6 +232,8 @@ class SshTerminalMonitor(WebsocketConsumer, WebsocketAuth):
         """
         User authenticate and detect user has permission to monitor user ssh action!
         """
+        self.ip = self.kwargs.get("ip", None)
+        self.id = self.kwargs.get("id", None)
         if not self.authenticate:
             self.message.reply_channel.send({"text": json.dumps(
                 {'status': False, 'message': 'You must login to the system!'})}, immediately=True)
