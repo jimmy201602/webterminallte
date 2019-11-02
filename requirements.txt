@@ -43,3 +43,4 @@ mock
 crypto
 pycrypto
 python-gssapi
+supervisor
