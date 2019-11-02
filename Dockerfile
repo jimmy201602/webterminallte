@@ -1,5 +1,5 @@
 #Webterminal dockfile
-FROM webterminal/webterminal:newest
+FROM ubuntu:latest
 LABEL maintainer zhengge2012@gmail.com
 WORKDIR /opt
 RUN apt-get update
