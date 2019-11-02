@@ -1,5 +1,5 @@
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webterminal.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webterminallte.settings")
 import django
 django.setup()
 from django.contrib.auth.models import User
