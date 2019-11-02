@@ -1,9 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
-if [ "${1#-}" != "$1" ]; then
-       set -- /usr/bin/supervisord -c /etc/supervisord.conf
-       set -- /usr/sbin/nginx -c /etc/nginx/nginx.conf
-fi
+trap "kill -15 -1 && echo all proc killed" TERM KILL INT
 
-exec "$@"
+if [ "$1" = "start" ]; then
+        service redis-server start
+        service nginx start
+        /usr/local/bin/supervisord -c /etc/supervisord.conf
+        sleep inf & wait
+else
+        exec "$@"
+fi
