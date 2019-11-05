@@ -105,10 +105,31 @@ class SshTerminalMonitor(DetailView):
     template_name = 'webterminal/sshlogmonitor.html'
     raise_exception = True
 
+    def get_context_data(self, **kwargs):
+        context = super(SshTerminalMonitor, self).get_context_data(**kwargs)
+        context['key'] = self.kwargs.get("key","")
+        return context
+
 
 class SshTerminalKill(View):
 
-    def post(self, request):
+    def dispatch(self, request, *args, **kwargs):
+        activate("zh_hans")
+        conn = get_redis_instance()
+        if "key" not in kwargs.keys():
+            raise PermissionDenied('403 Forbidden')
+        login_info = conn.get(kwargs["key"])
+        if login_info:
+            try:
+                login_info = json.loads(login_info)
+                self.request.user = login_info.get("nickname", "Anonymous")
+            except:
+                raise PermissionDenied('403 Forbidden')
+        else:
+            raise PermissionDenied('403 Forbidden')
+        return super(SshTerminalKill, self).dispatch(request, *args, **kwargs)
+
+    def post(self, request,key):
         if request.is_ajax():
             channel_name = request.POST.get('channel_name', None)
             try:

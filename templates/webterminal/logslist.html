@@ -78,7 +78,8 @@
                                 {% if element.is_finished %}
                                     <a class="btn btn-xs btn-primary play" onclick="play('{{element.user.username}}','{{element.server.ip}}','{{element.start_time|timezone:"Asia/Shanghai"}}','{{element.end_time|timezone:"Asia/Shanghai"}}','{% url 'sshlogplay' element.id %}'  );">{%trans 'replay' %}</a>
                                 {% else %}
-                                    <a class="btn btn-xs btn-success" onclick="monitor('{{element.user.username}}','{{element.server.ip}}','{{element.start_time|timezone:"Asia/Shanghai"}}','{% url 'sshterminalmonitor' element.id %}',)">{%trans 'monitor' %}</a>
+                                    <a class="btn btn-xs btn-success" onclick="monitor('{{element.user.username}}','{{element.server.ip}}','{{element.start_time|timezone:"Asia/Shanghai"}}','{% url 'sshterminalmonitor' element.id key %}',)">{%trans 'monitor' %}</a>
+                                    <a class="btn btn-xs btn-danger" onclick="kill('{{element.channel}}','{{element.user.username}}')">{%trans 'kill' %}</a>
                                 {% endif %}
                                 <a class="btn btn-xs btn-warning" onclick="get_commands_detail('{{element.id}}')">{%trans 'commands' %}</a>
                             </td>
@@ -198,7 +199,7 @@ function kill(channel_name,user_name) {
             if (result){
                 $.ajax({
                     type: "POST",
-                    url: '{% url 'sshterminalkill' %}',
+                    url: '{% url 'sshterminalkill' key %}',
                     dataType: "json",
                     data: {'channel_name':channel_name},
                     success: function (data) {

@@ -92,10 +92,13 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
                     # handle auth info
                     try:
                         authinfo = json.loads(authinfo)
-                        method = "key"
                         # auth server ssh username
                         username = authinfo.get("system_user")
                         password = authinfo.get("password", "")
+                        if len(password) >0:
+                            method = "password"
+                        else:
+                            method = "key"
                         key = authinfo.get("user_key")
                         port = authinfo.get("port")
                         loginuser = authinfo.get("nickname")  # auth user
@@ -228,7 +231,7 @@ class SshTerminalMonitor(WebsocketConsumer, WebsocketAuth):
     channel_session = True
     channel_session_user = True
 
-    def connect(self, message, channel):
+    def connect(self, message, channel,id):
         """
         User authenticate and detect user has permission to monitor user ssh action!
         """

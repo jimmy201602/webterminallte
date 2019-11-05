@@ -21,7 +21,7 @@
 <script type="application/javascript">
     $(document).ready(function () {
         var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-        var ws_path = ws_scheme + '://' + window.location.host + '/monitor/' + 'monitor-' + '{{object.log}}';
+        var ws_path = ws_scheme + '://' + window.location.host + '/monitor/' + 'monitor-' + '{{object.log}}/' + '{{key}}/';
         make_terminal(document.getElementById('terminal_monitor'), {rows: {{object.height}}, cols: {{object.width}}}, ws_path);
     })
     function make_terminal(element, size, ws_url) {
