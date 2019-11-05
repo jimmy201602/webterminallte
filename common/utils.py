@@ -19,14 +19,14 @@ class WebsocketAuth(object):
     @property
     def authenticate(self):
         # user auth function to be implement
-        if self.ip and self.id:
+        if self.id:
             conn = get_redis_instance()
             data = conn.get(self.id)
             try:
                 data = json.loads(data)
             except:
                 return False
-            if data and data.get("ip", "") == self.ip:
+            if data:
                 return True
             return False
 
