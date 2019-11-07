@@ -163,13 +163,8 @@
         var div_ip = ' {% trans 'server' %}: '+'<span class="text-info">' + ip + '</span>';
         var div_time = ' {% trans 'start time' %}: ' + '<span class="text-info">'+start_time +'</span>' + ' {% trans 'end time' %}: ' +'<span class="text-info">' + end_time + '</span>';
         var title = div_username + div_ip + div_time;
-        if (url.indexOf("guacamole") >= 0){
-            var size=BootstrapDialog.SIZE_WIDE;
-            var cssclass='play-dialog';
-        }else{
-            var size=BootstrapDialog.SIZE_NORMAL;
-            var cssclass='primary-default';
-        };
+        var size=BootstrapDialog.SIZE_WIDE;
+        var cssclass='play-dialog';
         BootstrapDialog.show({
             title: title,
             type: BootstrapDialog.TYPE_DEFAULT,
