@@ -3,7 +3,7 @@ FROM ubuntu:latest
 LABEL maintainer zhengge2012@gmail.com
 WORKDIR /opt
 RUN apt-get update
-RUN apt-get install -y python3 python3-dev nginx git libffi-dev gcc musl-dev  make  python3-pip libkrb5-dev libssh-dev libssl-dev redis-server
+RUN apt-get install -y vim python3 python3-dev nginx git libffi-dev gcc musl-dev  make  python3-pip libkrb5-dev libssh-dev libssl-dev redis-server
 RUN sed -i 's/bind 127.0.0.1 ::1/bind 127.0.0.1/g' /etc/redis/redis.conf
 RUN git clone https://github.com/jimmy201602/webterminallte
 WORKDIR /opt/webterminallte
