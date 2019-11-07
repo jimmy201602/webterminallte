@@ -96,7 +96,7 @@ class Webterminal(WebsocketConsumer, WebsocketAuth):
                         username = authinfo.get("system_user")
                         password = authinfo.get("password", "")
                         if len(password) >0:
-                            method = "password"
+                            method = "key"
                         else:
                             method = "key"
                         key = authinfo.get("user_key")
