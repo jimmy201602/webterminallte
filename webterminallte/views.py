@@ -23,7 +23,6 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.views.generic import TemplateView
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse_lazy
-from common.views import LoginRequiredMixin
 import traceback
 import re
 import uuid
